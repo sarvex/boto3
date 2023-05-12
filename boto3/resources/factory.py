@@ -126,16 +126,18 @@ class ResourceFactory(object):
 
         # Create the name based on the requested service and resource
         cls_name = resource_name
-        if service_context.service_name == resource_name:
+        if service_context.service_name == cls_name:
             cls_name = 'ServiceResource'
-        cls_name = service_context.service_name + '.' + cls_name
+        cls_name = f'{service_context.service_name}.{cls_name}'
 
         base_classes = [ServiceResource]
         if self._emitter is not None:
             self._emitter.emit(
-                'creating-resource-class.%s' % cls_name,
-                class_attributes=attrs, base_classes=base_classes,
-                service_context=service_context)
+                f'creating-resource-class.{cls_name}',
+                class_attributes=attrs,
+                base_classes=base_classes,
+                service_context=service_context,
+            )
         return type(str(cls_name), tuple(base_classes), attrs)
 
     def _load_identifiers(self, attrs, meta, resource_model, resource_name):
@@ -181,9 +183,9 @@ class ResourceFactory(object):
         shape = service_context.service_model.shape_for(
             resource_model.shape)
 
-        identifiers = dict(
-            (i.member_name, i)
-            for i in resource_model.identifiers if i.member_name)
+        identifiers = {
+            i.member_name: i for i in resource_model.identifiers if i.member_name
+        }
         attributes = resource_model.get_attributes(shape)
         for name, (orig_name, member) in attributes.items():
             if name in identifiers:
@@ -292,7 +294,7 @@ class ResourceFactory(object):
             # identifiers have a value ``None``. If any are ``None``,
             # a more informative user error than a generic AttributeError
             # is raised.
-            return getattr(self, '_' + identifier.name, None)
+            return getattr(self, f'_{identifier.name}', None)
 
         get_identifier.__name__ = str(identifier.name)
         get_identifier.__doc__ = docstring.IdentifierDocstring(
@@ -309,7 +311,7 @@ class ResourceFactory(object):
         Creates a read-only property that aliases an identifier.
         """
         def get_identifier(self):
-            return getattr(self, '_' + identifier.name, None)
+            return getattr(self, f'_{identifier.name}', None)
 
         get_identifier.__name__ = str(identifier.member_name)
         get_identifier.__doc__ = docstring.AttributeDocstring(

@@ -94,7 +94,7 @@ class ServiceDocumenter(BaseServiceDocumenter):
         for resource_name in json_resource_model['resources']:
             resource_model = json_resource_model['resources'][resource_name]
             resource_cls = self._boto3_session.resource_factory.\
-                load_from_definition(
+                    load_from_definition(
                     resource_name=resource_name,
                     single_resource_json_definition=resource_model,
                     service_context=ServiceContext(
@@ -106,9 +106,7 @@ class ServiceDocumenter(BaseServiceDocumenter):
                     )
                 )
             identifiers = resource_cls.meta.resource_model.identifiers
-            args = []
-            for _ in identifiers:
-                args.append(temp_identifier_value)
+            args = [temp_identifier_value for _ in identifiers]
             resource = resource_cls(*args, client=self._client)
             ResourceDocumenter(
                 resource, self._session).document_resource(
@@ -116,8 +114,8 @@ class ServiceDocumenter(BaseServiceDocumenter):
 
     def _get_example_file(self):
         return os.path.realpath(
-            os.path.join(self.EXAMPLE_PATH,
-                         self._service_name + '.rst'))
+            os.path.join(self.EXAMPLE_PATH, f'{self._service_name}.rst')
+        )
 
     def _document_examples(self, section):
         examples_file = self._get_example_file()

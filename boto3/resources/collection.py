@@ -109,9 +109,7 @@ class ResourceCollection(object):
         """
         params = copy.deepcopy(self._params)
         merge_dicts(params, kwargs, append_lists=True)
-        clone = self.__class__(self._model, self._parent,
-                               self._handler, **params)
-        return clone
+        return self.__class__(self._model, self._parent, self._handler, **params)
 
     def pages(self):
         """
@@ -410,8 +408,7 @@ class CollectionFactory(object):
             cls_name = '{0}.{1}.{2}Collection'.format(
                 service_context.service_name, resource_name, collection_name)
 
-        collection_cls = type(str(cls_name), (ResourceCollection,),
-                              attrs)
+        collection_cls = type(cls_name, (ResourceCollection,), attrs)
 
         # Add the documentation to the collection manager's methods
         self._load_documented_collection_methods(
@@ -423,7 +420,7 @@ class CollectionFactory(object):
         attrs['_collection_cls'] = collection_cls
         cls_name += 'Manager'
 
-        return type(str(cls_name), (CollectionManager,), attrs)
+        return type(cls_name, (CollectionManager,), attrs)
 
     def _load_batch_actions(self, attrs, resource_name, collection_model,
                             service_model, event_emitter):

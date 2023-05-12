@@ -47,8 +47,9 @@ class Binary(object):
     """
     def __init__(self, value):
         if not isinstance(value, BINARY_TYPES):
-            raise TypeError('Value must be of the following types: %s.' %
-                            ', '.join([str(t) for t in BINARY_TYPES]))
+            raise TypeError(
+                f"Value must be of the following types: {', '.join([str(t) for t in BINARY_TYPES])}."
+            )
         self.value = value
 
     def __eq__(self, other):
@@ -103,7 +104,7 @@ class TypeSerializer(object):
             dictionaries can be directly passed to botocore methods.
         """
         dynamodb_type = self._get_dynamodb_type(value)
-        serializer = getattr(self, '_serialize_%s' % dynamodb_type.lower())
+        serializer = getattr(self, f'_serialize_{dynamodb_type.lower()}')
         return {dynamodb_type: serializer(value)}
 
     def _get_dynamodb_type(self, value):
@@ -140,20 +141,16 @@ class TypeSerializer(object):
             dynamodb_type = LIST
 
         else:
-            msg = 'Unsupported type "%s" for value "%s"' % (type(value), value)
+            msg = f'Unsupported type "{type(value)}" for value "{value}"'
             raise TypeError(msg)
 
         return dynamodb_type
 
     def _is_null(self, value):
-        if value is None:
-            return True
-        return False
+        return value is None
 
     def _is_boolean(self, value):
-        if isinstance(value, bool):
-            return True
-        return False
+        return isinstance(value, bool)
 
     def _is_number(self, value):
         if isinstance(value, (six.integer_types, Decimal)):
@@ -164,9 +161,7 @@ class TypeSerializer(object):
         return False
 
     def _is_string(self, value):
-        if isinstance(value, six.string_types):
-            return True
-        return False
+        return isinstance(value, six.string_types)
 
     def _is_binary(self, value):
         if isinstance(value, Binary):
@@ -178,25 +173,16 @@ class TypeSerializer(object):
         return False
 
     def _is_set(self, value):
-        if isinstance(value, collections_abc.Set):
-            return True
-        return False
+        return isinstance(value, collections_abc.Set)
 
     def _is_type_set(self, value, type_validator):
-        if self._is_set(value):
-            if False not in map(type_validator, value):
-                return True
-        return False
+        return bool(self._is_set(value) and False not in map(type_validator, value))
 
     def _is_map(self, value):
-        if isinstance(value, collections_abc.Mapping):
-            return True
-        return False
+        return isinstance(value, collections_abc.Mapping)
 
     def _is_listlike(self, value):
-        if isinstance(value, (list, tuple)):
-            return True
-        return False
+        return isinstance(value, (list, tuple))
 
     def _serialize_null(self, value):
         return True
@@ -206,7 +192,7 @@ class TypeSerializer(object):
 
     def _serialize_n(self, value):
         number = str(DYNAMODB_CONTEXT.create_decimal(value))
-        if number in ['Infinity', 'NaN']:
+        if number in {'Infinity', 'NaN'}:
             raise TypeError('Infinity and NaN not supported')
         return number
 
@@ -263,11 +249,9 @@ class TypeDeserializer(object):
                             'is a valid dynamodb type.')
         dynamodb_type = list(value.keys())[0]
         try:
-            deserializer = getattr(
-                self, '_deserialize_%s' % dynamodb_type.lower())
+            deserializer = getattr(self, f'_deserialize_{dynamodb_type.lower()}')
         except AttributeError:
-            raise TypeError(
-                'Dynamodb type %s is not supported' % dynamodb_type)
+            raise TypeError(f'Dynamodb type {dynamodb_type} is not supported')
         return deserializer(value[dynamodb_type])
 
     def _deserialize_null(self, value):

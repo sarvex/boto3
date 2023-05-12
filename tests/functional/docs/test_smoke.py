@@ -83,13 +83,13 @@ def _assert_has_client_documentation(generated_docs, service_name, client):
         '======',
         'Client',
         '======',
-        '.. py:class:: %s.Client' % class_name,
+        f'.. py:class:: {class_name}.Client',
         '  A low-level client representing',
         '    import boto3',
         '    client = boto3.client(\'%s\')' % service_name,
         '  These are the available methods:',
-        '  *   :py:meth:`~%s.Client.get_paginator`' % class_name,
-        '  *   :py:meth:`~%s.Client.get_waiter`' % class_name,
+        f'  *   :py:meth:`~{class_name}.Client.get_paginator`',
+        f'  *   :py:meth:`~{class_name}.Client.get_waiter`',
         '  .. py:method:: get_paginator(operation_name)',
         '  .. py:method:: get_waiter(waiter_name)',
     ]
@@ -104,18 +104,17 @@ def _assert_has_paginator_documentation(generated_docs, service_name, client,
         '==========',
         'The available paginators are:'
     ]
+    ref_lines.extend(
+        f'* :py:class:`{client.__class__.__name__}.Paginator.{paginator_name}`'
+        for paginator_name in paginator_names
+    )
     for paginator_name in paginator_names:
-        ref_lines.append(
-            '* :py:class:`%s.Paginator.%s`' % (
-                client.__class__.__name__, paginator_name))
-
-    for paginator_name in paginator_names:
-        ref_lines.append(
-            '.. py:class:: %s.Paginator.%s' % (
-                client.__class__.__name__, paginator_name))
-        ref_lines.append(
-            '  .. py:method:: paginate(')
-
+        ref_lines.extend(
+            (
+                f'.. py:class:: {client.__class__.__name__}.Paginator.{paginator_name}',
+                '  .. py:method:: paginate(',
+            )
+        )
     _assert_contains_lines_in_order(ref_lines, generated_docs)
 
 
@@ -127,20 +126,19 @@ def _assert_has_waiter_documentation(generated_docs, service_name, client,
         '=======',
         'The available waiters are:'
     ]
+    ref_lines.extend(
+        f'* :py:class:`{client.__class__.__name__}.Waiter.{waiter_name}`'
+        for waiter_name in waiter_model.waiter_names
+    )
     for waiter_name in waiter_model.waiter_names:
-        ref_lines.append(
-            '* :py:class:`%s.Waiter.%s`' % (
-                client.__class__.__name__, waiter_name))
-
-    for waiter_name in waiter_model.waiter_names:
-        ref_lines.append(
-            '.. py:class:: %s.Waiter.%s' % (
-                client.__class__.__name__, waiter_name))
-        ref_lines.append(
-            '    waiter = client.get_waiter(\'%s\')' % xform_name(waiter_name))
-        ref_lines.append(
-            '  .. py:method:: wait(')
-
+        ref_lines.extend(
+            (
+                f'.. py:class:: {client.__class__.__name__}.Waiter.{waiter_name}',
+                '    waiter = client.get_waiter(\'%s\')'
+                % xform_name(waiter_name),
+                '  .. py:method:: wait(',
+            )
+        )
     _assert_contains_lines_in_order(ref_lines, generated_docs)
 
 
@@ -149,8 +147,7 @@ def _assert_has_resource_documentation(generated_docs, service_name, resource):
         '================',
         'Service Resource',
         '================',
-        '.. py:class:: %s.ServiceResource' % (
-            resource.meta.client.__class__.__name__),
+        f'.. py:class:: {resource.meta.client.__class__.__name__}.ServiceResource',
         '  A resource representing',
         '    import boto3',
         '    %s = boto3.resource(\'%s\')' % (service_name, service_name),

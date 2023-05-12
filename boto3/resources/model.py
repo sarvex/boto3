@@ -92,12 +92,7 @@ class DefinitionWithParams(object):
 
         :type: list(:py:class:`Parameter`)
         """
-        params = []
-
-        for item in self._definition.get('params', []):
-            params.append(Parameter(**item))
-
-        return params
+        return [Parameter(**item) for item in self._definition.get('params', [])]
 
 
 class Parameter(object):
@@ -192,13 +187,7 @@ class ResponseResource(object):
 
         :type: list(:py:class:`Identifier`)
         """
-        identifiers = []
-
-        for item in self._definition.get('identifiers', []):
-            identifiers.append(
-                Parameter(**item))
-
-        return identifiers
+        return [Parameter(**item) for item in self._definition.get('identifiers', [])]
 
     @property
     def model(self):
@@ -296,7 +285,7 @@ class ResourceModel(object):
         :param shape: The underlying shape for this resource.
         """
         # Meta is a reserved name for resources
-        names = set(['meta'])
+        names = {'meta'}
         self._renamed = {}
 
         if self._definition.get('load'):
@@ -309,14 +298,10 @@ class ResourceModel(object):
             self._load_name_with_category(names, name, 'action')
 
         for name, ref in self._get_has_definition().items():
-            # Subresources require no data members, just typically
-            # identifiers and user input.
-            data_required = False
-            for identifier in ref['resource']['identifiers']:
-                if identifier['source'] == 'data':
-                    data_required = True
-                    break
-
+            data_required = any(
+                identifier['source'] == 'data'
+                for identifier in ref['resource']['identifiers']
+            )
             if not data_required:
                 self._load_name_with_category(names, name, 'subresource',
                                               snake_case=False)
@@ -355,15 +340,15 @@ class ResourceModel(object):
             name = xform_name(name)
 
         if name in names:
-            logger.debug('Renaming %s %s %s' % (self.name, category, name))
-            self._renamed[(category, name)] = name + '_' + category
-            name += '_' + category
+            logger.debug(f'Renaming {self.name} {category} {name}')
+            self._renamed[(category, name)] = f'{name}_{category}'
+            name += f'_{category}'
 
-            if name in names:
-                # This isn't good, let's raise instead of trying to keep
-                # renaming this value.
-                raise ValueError('Problem renaming {0} {1} to {2}!'.format(
-                    self.name, category, name))
+        if name in names:
+            # This isn't good, let's raise instead of trying to keep
+            # renaming this value.
+            raise ValueError('Problem renaming {0} {1} to {2}!'.format(
+                self.name, category, name))
 
         names.add(name)
 
@@ -560,17 +545,17 @@ class ResourceModel(object):
                 name = self._get_name('reference', name)
             action = Action(name, definition, self._resource_defs)
 
-            data_required = False
-            for identifier in action.resource.identifiers:
-                if identifier.source == 'data':
-                    data_required = True
-                    break
-
-            if subresources and not data_required:
+            data_required = any(
+                identifier.source == 'data'
+                for identifier in action.resource.identifiers
+            )
+            if (
+                subresources
+                and not data_required
+                or not subresources
+                and data_required
+            ):
                 resources.append(action)
-            elif not subresources and data_required:
-                resources.append(action)
-
         return resources
 
     @property

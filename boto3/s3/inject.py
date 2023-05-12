@@ -75,7 +75,7 @@ def bucket_load(self, *args, **kwargs):
                 self.meta.data = bucket_data
                 break
     except ClientError as e:
-        if not e.response.get('Error', {}).get('Code') == 'AccessDenied':
+        if e.response.get('Error', {}).get('Code') != 'AccessDenied':
             raise
 
 def object_summary_load(self, *args, **kwargs):
@@ -363,10 +363,7 @@ def copy(self, CopySource, Bucket, Key, ExtraArgs=None, Callback=None,
     :param Config: The transfer configuration to be used when performing the
         copy.
     """
-    subscribers = None
-    if Callback is not None:
-        subscribers = [ProgressCallbackInvoker(Callback)]
-
+    subscribers = None if Callback is None else [ProgressCallbackInvoker(Callback)]
     config = Config
     if config is None:
         config = TransferConfig()
@@ -524,10 +521,7 @@ def upload_fileobj(self, Fileobj, Bucket, Key, ExtraArgs=None,
     if not hasattr(Fileobj, 'read'):
         raise ValueError('Fileobj must implement read')
 
-    subscribers = None
-    if Callback is not None:
-        subscribers = [ProgressCallbackInvoker(Callback)]
-
+    subscribers = None if Callback is None else [ProgressCallbackInvoker(Callback)]
     config = Config
     if config is None:
         config = TransferConfig()
@@ -663,10 +657,7 @@ def download_fileobj(self, Bucket, Key, Fileobj, ExtraArgs=None,
     if not hasattr(Fileobj, 'write'):
         raise ValueError('Fileobj must implement write')
 
-    subscribers = None
-    if Callback is not None:
-        subscribers = [ProgressCallbackInvoker(Callback)]
-
+    subscribers = None if Callback is None else [ProgressCallbackInvoker(Callback)]
     config = Config
     if config is None:
         config = TransferConfig()

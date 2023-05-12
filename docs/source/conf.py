@@ -23,20 +23,6 @@ session = boto3.session.Session(region_name='us-east-1')
 generate_docs(os.path.dirname(os.path.abspath(__file__)), session)
 
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
-
-# -- General configuration -----------------------------------------------------
-
-# If your documentation needs a minimal Sphinx version, state it here.
-#needs_sphinx = '1.0'
-
-# Add any Sphinx extension module names here, as strings. They can be extensions
-# coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.viewcode']
-
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -99,7 +85,11 @@ pygments_style = 'sphinx'
 
 import guzzle_sphinx_theme
 
-extensions.append("guzzle_sphinx_theme")
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.viewcode',
+    "guzzle_sphinx_theme",
+]
 html_translator_class = 'guzzle_sphinx_theme.HTMLTranslator'
 html_theme_path = guzzle_sphinx_theme.html_theme_path()
 html_theme = 'guzzle_sphinx_theme'

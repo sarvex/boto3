@@ -28,4 +28,4 @@ class BaseDocumenter(object):
 
     @property
     def class_name(self):
-        return '%s.%s' % (self._service_docs_name, self._resource_name)
+        return f'{self._service_docs_name}.{self._resource_name}'

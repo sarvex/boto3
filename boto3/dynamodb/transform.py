@@ -180,15 +180,13 @@ class TransformationInjector(object):
         # update the placeholder dictionaries in the request.
         if expr_attr_names_input in params:
             params[expr_attr_names_input].update(generated_names)
-        else:
-            if generated_names:
-                params[expr_attr_names_input] = generated_names
+        elif generated_names:
+            params[expr_attr_names_input] = generated_names
 
         if expr_attr_values_input in params:
             params[expr_attr_values_input].update(generated_values)
-        else:
-            if generated_values:
-                params[expr_attr_values_input] = generated_values
+        elif generated_values:
+            params[expr_attr_values_input] = generated_values
 
     def inject_attribute_value_input(self, params, model, **kwargs):
         """Injects DynamoDB serialization into parameter input"""
@@ -257,8 +255,9 @@ class ParameterTransformer(object):
                               target_shape):
         type_name = model.type_name
         if type_name in ['structure', 'map', 'list']:
-            getattr(self, '_transform_%s' % type_name)(
-                model, params, transformation, target_shape)
+            getattr(self, f'_transform_{type_name}')(
+                model, params, transformation, target_shape
+            )
 
     def _transform_structure(self, model, params, transformation,
                              target_shape):

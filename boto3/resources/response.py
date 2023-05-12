@@ -23,10 +23,7 @@ def all_not_none(iterable):
     iterable is empty). This is like the built-in ``all``, except checks
     against None, so 0 and False are allowable values.
     """
-    for element in iterable:
-        if element is None:
-            return False
-    return True
+    return all(element is not None for element in iterable)
 
 
 def build_identifiers(identifiers, parent, params=None, raw_response=None):
@@ -115,13 +112,10 @@ def build_empty_response(search_path, operation_name, service_model):
                         shape.type_name, item))
 
     # Anything not handled here is set to None
-    if shape.type_name == 'structure':
-        response = {}
-    elif shape.type_name == 'list':
+    if shape.type_name == 'list':
         response = []
-    elif shape.type_name == 'map':
+    elif shape.type_name in ['structure', 'map']:
         response = {}
-
     return response
 
 
@@ -226,10 +220,7 @@ class ResourceHandler(object):
             self.resource_model.identifiers, parent, params,
             raw_response))
 
-        # If any of the identifiers is a list, then the response is plural
-        plural = [v for v in identifiers.values() if isinstance(v, list)]
-
-        if plural:
+        if plural := [v for v in identifiers.values() if isinstance(v, list)]:
             response = []
 
             # The number of items in an identifier that is a list will
@@ -249,19 +240,14 @@ class ResourceHandler(object):
             # cannot be instantiated.
             response = self.handle_response_item(
                 resource_cls, parent, identifiers, search_response)
-        else:
-            # The response should be empty, but that may mean an
-            # empty dict, list, or None based on whether we make
-            # a remote service call and what shape it is expected
-            # to return.
+        elif self.operation_name is None:
             response = None
-            if self.operation_name is not None:
-                # A remote service call was made, so try and determine
-                # its shape.
-                response = build_empty_response(
-                    self.search_path, self.operation_name,
-                    self.service_context.service_model)
-
+        else:
+            response = build_empty_response(
+                self.search_path,
+                self.operation_name,
+                self.service_context.service_model,
+            )
         return response
 
     def handle_response_item(self, resource_cls, parent, identifiers,

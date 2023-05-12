@@ -124,16 +124,14 @@ def build_param_structure(params, target, value, index=None):
     # pos variable, walking down to the last item. Once there, we
     # set the value.
     for i, part in enumerate(parts):
-        # Is it indexing an array?
-        result = INDEX_RE.search(part)
-        if result:
+        if result := INDEX_RE.search(part):
             if result.group(1):
                 if result.group(1) == '*':
                     part = part[:-3]
                 else:
                     # We have an explicit index
                     index = int(result.group(1))
-                    part = part[:-len(str(index) + '[]')]
+                    part = part[:-len(f'{index}[]')]
             else:
                 # Index will be set after we know the proper part
                 # name and that it's a list instance.

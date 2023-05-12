@@ -47,14 +47,14 @@ def is_resource_action(action_handle):
 
 def get_resource_public_actions(resource_class):
     resource_class_members = inspect.getmembers(resource_class)
-    resource_methods = {}
-    for name, member in resource_class_members:
-        if not name.startswith('_'):
-            if not name[0].isupper():
-                if not name.startswith('wait_until'):
-                    if is_resource_action(member):
-                        resource_methods[name] = member
-    return resource_methods
+    return {
+        name: member
+        for name, member in resource_class_members
+        if not name.startswith('_')
+        and not name[0].isupper()
+        and not name.startswith('wait_until')
+        and is_resource_action(member)
+    }
 
 
 def get_identifier_values_for_example(identifier_names):
@@ -67,8 +67,7 @@ def get_identifier_args_for_signature(identifier_names):
 
 
 def get_identifier_description(resource_name, identifier_name):
-    return "The %s's %s identifier. This **must** be set." % (
-        resource_name, identifier_name)
+    return f"The {resource_name}'s {identifier_name} identifier. This **must** be set."
 
 
 def add_resource_type_overview(section, resource_type, description,
@@ -111,13 +110,13 @@ class DocumentModifiedShape(object):
 
     def _replace_documentation(self, event_name, section):
         if event_name.startswith('docs.request-example') or \
-                event_name.startswith('docs.response-example'):
+                    event_name.startswith('docs.response-example'):
             section.remove_all_sections()
             section.clear_text()
             section.write(self._new_example_value)
 
         if event_name.startswith('docs.request-params') or \
-                event_name.startswith('docs.response-params'):
+                    event_name.startswith('docs.response-params'):
             for section_name in section.available_sections:
                 # Delete any extra members as a new shape is being
                 # used.
@@ -135,8 +134,7 @@ class DocumentModifiedShape(object):
             type_section = section.get_section('param-type')
             if type_section.getvalue().decode('utf-8').startswith(':type'):
                 type_section.clear_text()
-                type_section.write(':type %s: %s' % (
-                    section.name, self._new_type))
+                type_section.write(f':type {section.name}: {self._new_type}')
             else:
                 type_section.clear_text()
-                type_section.style.italics('(%s) -- ' % self._new_type)
+                type_section.style.italics(f'({self._new_type}) -- ')

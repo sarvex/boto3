@@ -25,12 +25,10 @@ if six.PY3:
     # In py3 all the socket related errors are in a newly created
     # ConnectionError
     SOCKET_ERROR = ConnectionError
+    import collections.abc as collections_abc
 else:
     SOCKET_ERROR = socket.error
 
-if six.PY3:
-    import collections.abc as collections_abc
-else:
     import collections as collections_abc
 
 
@@ -39,7 +37,7 @@ if sys.platform.startswith('win'):
         try:
             os.remove(new_filename)
         except OSError as e:
-            if not e.errno == errno.ENOENT:
+            if e.errno != errno.ENOENT:
                 # We only want to a ignore trying to remove
                 # a file that does not exist.  If it fails
                 # for any other reason we should be propagating
@@ -77,10 +75,5 @@ def _warn_deprecated_python():
 
     if py_version in deprecated_versions:
         params = deprecated_versions[py_version]
-        warning = (
-            "Boto3 will no longer support Python {}.{} "
-            "starting {}. To continue receiving service updates, "
-            "bug fixes, and security updates please upgrade to Python 3.6 or "
-            "later. More information can be found here: {}"
-        ).format(py_version[0], py_version[1], params['date'], params['blog_link'])
+        warning = f"Boto3 will no longer support Python {py_version[0]}.{py_version[1]} starting {params['date']}. To continue receiving service updates, bug fixes, and security updates please upgrade to Python 3.6 or later. More information can be found here: {params['blog_link']}"
         warnings.warn(warning, PythonDeprecationWarning)

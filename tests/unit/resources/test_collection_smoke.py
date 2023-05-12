@@ -78,11 +78,10 @@ def test_all_collections_have_paginators_if_needed():
         json_resource_model = loader.load_service_model(
             service_name, 'resources-1')
         resource_defs = json_resource_model['resources']
-        resource_models = []
         # Get the service resource model
         service_resource_model = ResourceModel(
             service_name, json_resource_model['service'], resource_defs)
-        resource_models.append(service_resource_model)
+        resource_models = [service_resource_model]
         # Generate all of the resource models for a service
         for resource_name, resource_defintion in resource_defs.items():
             resource_models.append(ResourceModel(

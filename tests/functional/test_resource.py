@@ -42,9 +42,7 @@ class TestResourceCustomization(unittest.TestCase):
 class TestSessionErrorMessages(unittest.TestCase):
     def test_has_good_error_message_when_no_resource(self):
         bad_resource_name = 'doesnotexist'
-        err_regex = (
-            '%s.*resource does not exist.' % bad_resource_name
-        )
+        err_regex = f'{bad_resource_name}.*resource does not exist.'
         with self.assertRaisesRegexp(ResourceNotExistsError, err_regex):
             boto3.resource(bad_resource_name)
 

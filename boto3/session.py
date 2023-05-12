@@ -59,7 +59,7 @@ class Session(object):
             botocore_info = 'Botocore/{0}'.format(
                 self._session.user_agent_version)
             if self._session.user_agent_extra:
-                self._session.user_agent_extra += ' ' + botocore_info
+                self._session.user_agent_extra += f' {botocore_info}'
             else:
                 self._session.user_agent_extra = botocore_info
             self._session.user_agent_name = 'Boto3'
@@ -375,12 +375,11 @@ class Session(object):
         # and service model, the resource version and resource JSON data.
         # We pass these to the factory and get back a class, which is
         # instantiated on top of the low-level client.
-        if config is not None:
-            if config.user_agent_extra is None:
-                config = copy.deepcopy(config)
-                config.user_agent_extra = 'Resource'
-        else:
+        if config is None:
             config = Config(user_agent_extra='Resource')
+        elif config.user_agent_extra is None:
+            config = copy.deepcopy(config)
+            config.user_agent_extra = 'Resource'
         client = self.client(
             service_name, region_name=region_name, api_version=api_version,
             use_ssl=use_ssl, verify=verify, endpoint_url=endpoint_url,

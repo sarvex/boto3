@@ -17,10 +17,11 @@ import botocore.session
 
 
 def create_session():
-    session = Session(aws_access_key_id='dummy',
-                      aws_secret_access_key='dummy',
-                      region_name='us-east-1')
-    return session
+    return Session(
+        aws_access_key_id='dummy',
+        aws_secret_access_key='dummy',
+        region_name='us-east-1',
+    )
 
 
 def test_can_create_all_resources():

@@ -122,6 +122,7 @@ transfer.  For example:
 
 
 """
+
 from botocore.exceptions import ClientError
 from botocore.compat import six
 from s3transfer.exceptions import RetriesExceededError as \
@@ -136,7 +137,7 @@ from boto3.exceptions import RetriesExceededError, S3UploadFailedError
 
 
 KB = 1024
-MB = KB * KB
+MB = KB**2
 
 
 def create_transfer_manager(client, config, osutil=None):
@@ -154,9 +155,7 @@ def create_transfer_manager(client, config, osutil=None):
     :rtype: s3transfer.manager.TransferManager
     :returns: A transfer manager based on parameters provided
     """
-    executor_cls = None
-    if not config.use_threads:
-        executor_cls = NonThreadedExecutor
+    executor_cls = NonThreadedExecutor if not config.use_threads else None
     return TransferManager(client, config, osutil, executor_cls)
 
 
@@ -277,14 +276,10 @@ class S3Transfer(object):
             filename, bucket, key, extra_args, subscribers)
         try:
             future.result()
-        # If a client error was raised, add the backwards compatibility layer
-        # that raises a S3UploadFailedError. These specific errors were only
-        # ever thrown for upload_parts but now can be thrown for any related
-        # client error.
         except ClientError as e:
             raise S3UploadFailedError(
-                "Failed to upload %s to %s: %s" % (
-                    filename, '/'.join([bucket, key]), e))
+                f"Failed to upload {filename} to {'/'.join([bucket, key])}: {e}"
+            )
 
     def download_file(self, bucket, key, filename, extra_args=None,
                       callback=None):
@@ -314,9 +309,7 @@ class S3Transfer(object):
             raise RetriesExceededError(e.last_exception)
 
     def _get_subscribers(self, callback):
-        if not callback:
-            return None
-        return [ProgressCallbackInvoker(callback)]
+        return None if not callback else [ProgressCallbackInvoker(callback)]
 
     def __enter__(self):
         return self

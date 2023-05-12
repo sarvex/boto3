@@ -32,11 +32,11 @@ class BaseDynamoDBTest(unittest.TestCase):
             'MyString': 'mystring',
             'MyNumber': Decimal('1.25'),
             'MyBinary': Binary(b'\x01'),
-            'MyStringSet': set(['foo']),
-            'MyNumberSet': set([Decimal('1.25')]),
-            'MyBinarySet': set([Binary(b'\x01')]),
+            'MyStringSet': {'foo'},
+            'MyNumberSet': {Decimal('1.25')},
+            'MyBinarySet': {Binary(b'\x01')},
             'MyList': ['foo'],
-            'MyMap': {'foo': 'bar'}
+            'MyMap': {'foo': 'bar'},
         }
         cls.table = cls.dynamodb.create_table(
             TableName=cls.table_name,
@@ -205,10 +205,10 @@ class TestDynamoDBConditions(BaseDynamoDBTest):
 class TestDynamodbBatchWrite(BaseDynamoDBTest):
     def test_batch_write_items(self):
         num_elements = 1000
-        items = []
-        for i in range(num_elements):
-            items.append({'MyHashKey': 'foo%s' % i,
-                          'OtherKey': 'bar%s' % i})
+        items = [
+            {'MyHashKey': f'foo{i}', 'OtherKey': f'bar{i}'}
+            for i in range(num_elements)
+        ]
         with self.table.batch_writer() as batch:
             for item in items:
                 batch.put_item(Item=item)

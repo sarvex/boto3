@@ -41,10 +41,10 @@ class CollectionDocumenter(BaseDocumenter):
         methods = get_instance_public_methods(
             getattr(self._resource, collection.name))
         document_collection_object(section, collection)
-        batch_actions = {}
-        for batch_action in collection.batch_actions:
-            batch_actions[batch_action.name] = batch_action
-
+        batch_actions = {
+            batch_action.name: batch_action
+            for batch_action in collection.batch_actions
+        }
         for method in sorted(methods):
             method_section = section.add_new_section(method)
             if method in batch_actions:
@@ -81,7 +81,8 @@ def document_collection_object(section, collection_model,
     if include_signature:
         section.style.start_sphinx_py_attr(collection_model.name)
     section.include_doc_string(
-        'A collection of %s resources.' % collection_model.resource.type)
+        f'A collection of {collection_model.resource.type} resources.'
+    )
     section.include_doc_string(
         'A %s Collection will include all resources by default, '
         'and extreme caution should be taken when performing '
@@ -123,10 +124,7 @@ def document_batch_action(section, resource_name, event_emitter,
     example_resource_name = xform_name(resource_name)
     if service_model.service_name == resource_name:
         example_resource_name = resource_name
-    example_prefix = '%s = %s.%s.%s' % (
-        example_return_value, example_resource_name,
-        collection_model.name, batch_action_model.name
-    )
+    example_prefix = f'{example_return_value} = {example_resource_name}.{collection_model.name}.{batch_action_model.name}'
     document_model_driven_resource_method(
         section=section, method_name=batch_action_model.name,
         operation_model=operation_model,
@@ -163,72 +161,57 @@ def document_collection_method(section, resource_name, action_name,
     operation_model = service_model.operation_model(
         collection_model.request.operation)
 
-    underlying_operation_members = []
     if operation_model.input_shape:
         underlying_operation_members = operation_model.input_shape.members
-
+    else:
+        underlying_operation_members = []
     example_resource_name = xform_name(resource_name)
     if service_model.service_name == resource_name:
         example_resource_name = resource_name
 
     custom_action_info_dict = {
         'all': {
-            'method_description': (
-                'Creates an iterable of all %s resources '
-                'in the collection.' % collection_model.resource.type),
-            'example_prefix': '%s_iterator = %s.%s.all' % (
-                xform_name(collection_model.resource.type),
-                example_resource_name, collection_model.name),
-            'exclude_input': underlying_operation_members
+            'method_description': f'Creates an iterable of all {collection_model.resource.type} resources in the collection.',
+            'example_prefix': f'{xform_name(collection_model.resource.type)}_iterator = {example_resource_name}.{collection_model.name}.all',
+            'exclude_input': underlying_operation_members,
         },
         'filter': {
-            'method_description': (
-                'Creates an iterable of all %s resources '
-                'in the collection filtered by kwargs passed to '
-                'method.' % collection_model.resource.type +
-                'A %s collection will include all resources by '
-                'default if no filters are provided, and extreme '
-                'caution should be taken when performing actions '
-                'on all resources.'% collection_model.resource.type),
-            'example_prefix': '%s_iterator = %s.%s.filter' % (
-                xform_name(collection_model.resource.type),
-                example_resource_name, collection_model.name),
+            'method_description': f'Creates an iterable of all {collection_model.resource.type} resources in the collection filtered by kwargs passed to method.'
+            + f'A {collection_model.resource.type} collection will include all resources by default if no filters are provided, and extreme caution should be taken when performing actions on all resources.',
+            'example_prefix': f'{xform_name(collection_model.resource.type)}_iterator = {example_resource_name}.{collection_model.name}.filter',
             'exclude_input': get_resource_ignore_params(
-                collection_model.request.params)
+                collection_model.request.params
+            ),
         },
         'limit': {
-            'method_description': (
-                'Creates an iterable up to a specified amount of '
-                '%s resources in the collection.' %
-                collection_model.resource.type),
-            'example_prefix': '%s_iterator = %s.%s.limit' % (
-                xform_name(collection_model.resource.type),
-                example_resource_name, collection_model.name),
+            'method_description': f'Creates an iterable up to a specified amount of {collection_model.resource.type} resources in the collection.',
+            'example_prefix': f'{xform_name(collection_model.resource.type)}_iterator = {example_resource_name}.{collection_model.name}.limit',
             'include_input': [
                 DocumentedShape(
-                    name='count', type_name='integer',
+                    name='count',
+                    type_name='integer',
                     documentation=(
                         'The limit to the number of resources '
-                        'in the iterable.'))],
-            'exclude_input': underlying_operation_members
+                        'in the iterable.'
+                    ),
+                )
+            ],
+            'exclude_input': underlying_operation_members,
         },
         'page_size': {
-            'method_description': (
-                'Creates an iterable of all %s resources '
-                'in the collection, but limits the number of '
-                'items returned by each service call by the specified '
-                'amount.' % collection_model.resource.type),
-            'example_prefix': '%s_iterator = %s.%s.page_size' % (
-                xform_name(collection_model.resource.type),
-                example_resource_name, collection_model.name),
+            'method_description': f'Creates an iterable of all {collection_model.resource.type} resources in the collection, but limits the number of items returned by each service call by the specified amount.',
+            'example_prefix': f'{xform_name(collection_model.resource.type)}_iterator = {example_resource_name}.{collection_model.name}.page_size',
             'include_input': [
                 DocumentedShape(
-                    name='count', type_name='integer',
+                    name='count',
+                    type_name='integer',
                     documentation=(
-                        'The number of items returned by each '
-                        'service call'))],
-            'exclude_input': underlying_operation_members
-        }
+                        'The number of items returned by each ' 'service call'
+                    ),
+                )
+            ],
+            'exclude_input': underlying_operation_members,
+        },
     }
     if action_name in custom_action_info_dict:
         action_info = custom_action_info_dict[action_name]

@@ -46,10 +46,7 @@ class ServiceAction(object):
     def __init__(self, action_model, factory=None, service_context=None):
         self._action_model = action_model
 
-        # In the simplest case we just return the response, but if a
-        # resource is defined, then we must create these before returning.
-        resource_response_model = action_model.resource
-        if resource_response_model:
+        if resource_response_model := action_model.resource:
             self._response_handler = ResourceHandler(
                 search_path=resource_response_model.path,
                 factory=factory, resource_model=resource_response_model,
@@ -144,7 +141,7 @@ class BatchAction(ServiceAction):
                 # There are no items, no need to make a call.
                 break
 
-            params.update(kwargs)
+            params |= kwargs
 
             logger.debug('Calling %s:%s with %r',
                         service_name, operation_name, params)

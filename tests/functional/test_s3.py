@@ -154,10 +154,7 @@ class TestCopy(BaseTransferTest):
         for i in range(num_parts):
             # Fill in the parts
             part_number = i + 1
-            copy_range = "bytes=%s-%s" % (
-                i * part_size,
-                i * part_size + (part_size - 1)
-            )
+            copy_range = f"bytes={i * part_size}-{i * part_size + (part_size - 1)}"
             self.stub_copy_part(part_number=part_number, copy_range=copy_range)
             parts.append({'ETag': self.etag, 'PartNumber': part_number})
 
@@ -386,26 +383,20 @@ class TestDownloadFileobj(BaseTransferTest):
         # contents needs to be pruned, and Range needs to be an expected param.
         if end_byte is not None:
             contents = full_contents[start_byte:end_byte+1]
-            part_range = 'bytes=%s-%s' % (start_byte, end_byte_range)
-            content_range = 'bytes=%s-%s/%s' % (
-                start_byte, end_byte, len(full_contents))
+            part_range = f'bytes={start_byte}-{end_byte_range}'
+            content_range = f'bytes={start_byte}-{end_byte}/{len(full_contents)}'
             get_object_response['ContentRange'] = content_range
             expected_params['Range'] = part_range
 
-        get_object_response.update({
+        get_object_response |= {
             "AcceptRanges": "bytes",
             "ETag": self.etag,
             "ContentLength": len(contents),
             "ContentType": "binary/octet-stream",
             "Body": six.BytesIO(contents),
-            "ResponseMetadata": {
-                "HTTPStatusCode": 200
-            }
-        })
-        expected_params.update({
-            "Bucket": self.bucket,
-            "Key": self.key
-        })
+            "ResponseMetadata": {"HTTPStatusCode": 200},
+        }
+        expected_params |= {"Bucket": self.bucket, "Key": self.key}
 
         self.stubber.add_response(
             method='get_object', service_response=get_object_response,

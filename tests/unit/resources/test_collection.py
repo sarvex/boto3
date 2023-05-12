@@ -185,7 +185,7 @@ class TestResourceCollection(BaseTestCase):
         collection_model = Collection(
             'test', self.collection_def, resource_defs)
 
-        collection = CollectionManager(
+        return CollectionManager(
             collection_model=collection_model,
             parent=self.parent,
             factory=self.factory,
@@ -193,10 +193,9 @@ class TestResourceCollection(BaseTestCase):
                 service_name='test',
                 service_model=self.service_model,
                 resource_json_definitions=resource_defs,
-                service_waiter_model=None
-            )
+                service_waiter_model=None,
+            ),
         )
-        return collection
 
     def test_repr(self):
         collection = self.get_collection()

@@ -49,10 +49,7 @@ class ConditionBase(object):
                 'values': self._values}
 
     def __eq__(self, other):
-        if isinstance(other, type(self)):
-            if self._values == other._values:
-                return True
-        return False
+        return isinstance(other, type(self)) and self._values == other._values
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -302,10 +299,10 @@ class ConditionExpressionBuilder(object):
         self._value_placeholder = 'v'
 
     def _get_name_placeholder(self):
-        return '#' + self._name_placeholder + str(self._name_count)
+        return f'#{self._name_placeholder}{str(self._name_count)}'
 
     def _get_value_placeholder(self):
-        return ':' + self._value_placeholder + str(self._value_count)
+        return f':{self._value_placeholder}{str(self._value_count)}'
 
     def reset(self):
         """Resets the placeholder name and values"""
